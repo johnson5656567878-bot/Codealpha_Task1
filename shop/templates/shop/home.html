@@ -1,0 +1,339 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}NovaMart | Premium Online Shopping in India{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-mesh"></div>
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="hero-pill">
+          <i class="bi bi-stars text-warning"></i> Exclusive Launch Deals 2026
+        </div>
+        <h1 class="hero-title">
+          Elevate Your Everyday With <span>Next-Gen Style & Tech</span>
+        </h1>
+        <p class="hero-subtitle">
+          Explore curated electronics, premium smart accessories, and contemporary fashion at honest prices with nationwide Cash on Delivery.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'shop:product_list' %}" class="btn btn-primary-custom btn-pill px-4 py-3 fs-6">
+            <i class="bi bi-bag-fill me-1"></i> Shop Catalog Now
+          </a>
+          <a href="{% url 'shop:category_list' %}" class="btn btn-secondary-custom btn-pill px-4 py-3 fs-6">
+            <i class="bi bi-grid-fill me-1"></i> Browse Categories
+          </a>
+        </div>
+
+        <div class="hero-features">
+          <div class="hero-feature-item">
+            <i class="bi bi-truck text-warning"></i>
+            <span>Free Shipping over {{ CURRENCY_SYMBOL }}999</span>
+          </div>
+          <div class="hero-feature-item">
+            <i class="bi bi-cash-coin text-success"></i>
+            <span>Cash on Delivery</span>
+          </div>
+          <div class="hero-feature-item">
+            <i class="bi bi-arrow-repeat text-info"></i>
+            <span>7-Day Easy Returns</span>
+          </div>
+          <div class="hero-feature-item">
+            <i class="bi bi-shield-check text-primary"></i>
+            <span>100% Genuine</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="hero-card-preview text-center">
+          <!-- Top Floating Badge -->
+          <div class="floating-badge floating-badge-top">
+            <i class="bi bi-star-fill text-warning"></i>
+            <div>
+              <div class="small fw-bold">4.9 / 5 Rating</div>
+              <div class="small text-muted" style="font-size: 0.72rem;">12,000+ Happy Customers</div>
+            </div>
+          </div>
+
+          <!-- Hero Promo Illustration / Product Card -->
+          <div class="p-4 rounded-4 bg-white text-dark shadow-lg">
+            <div class="position-relative mb-3">
+              <span class="badge bg-danger position-absolute top-0 start-0 m-2 px-2 py-1">Limited Deal</span>
+              <img src="{% static 'shop/images/placeholder.svg' %}" alt="NovaMart Featured Deal" class="img-fluid rounded-3" style="max-height: 240px; width: 100%; object-fit: cover;">
+            </div>
+            <div class="text-uppercase small text-primary fw-bold">Featured Highlight</div>
+            <h4 class="fw-bold mb-1">Ultra-Crisp Wireless Audio</h4>
+            <div class="d-flex justify-content-center align-items-baseline gap-2 mb-3">
+              <span class="fs-4 fw-bold text-dark">{{ CURRENCY_SYMBOL }}2,499.00</span>
+              <span class="text-muted text-decoration-line-through small">{{ CURRENCY_SYMBOL }}4,999.00</span>
+              <span class="badge bg-success-subtle text-success small">50% OFF</span>
+            </div>
+            <a href="{% url 'shop:product_list' %}" class="btn btn-primary-custom w-100 py-2">
+              Explore Deals <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+
+          <!-- Bottom Floating Badge -->
+          <div class="floating-badge floating-badge-bottom">
+            <i class="bi bi-patch-check-fill text-success fs-5"></i>
+            <div class="text-start">
+              <div class="small fw-bold">Verified Merchant</div>
+              <div class="small text-muted" style="font-size: 0.72rem;">Instant Order Dispatch</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Database Empty State Banner -->
+{% if total_catalog_products == 0 %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="card border-0 shadow-sm p-4 p-md-5 text-center rounded-4">
+      <div class="mb-3">
+        <i class="bi bi-database-exclamation text-warning display-4"></i>
+      </div>
+      <h3 class="fw-bold">Your Store Catalogue is Currently Empty</h3>
+      <p class="text-muted mx-auto" style="max-width: 600px;">
+        No products were found in the database. You can quickly seed 15+ rich sample products across electronics, fashion, and home decor by running the management command in your terminal:
+      </p>
+      <div class="bg-dark text-light p-3 rounded-3 font-monospace my-3 mx-auto text-start" style="max-width: 500px;">
+        <span class="text-success">$</span> python manage.py load_sample_data
+      </div>
+      <div>
+        <a href="{% url 'admin:index' %}" class="btn btn-primary-custom" target="_blank">
+          <i class="bi bi-plus-circle me-1"></i> Add Products via Admin Panel
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Top Categories Section -->
+{% if categories %}
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+      <div>
+        <span class="text-uppercase small text-primary fw-bold">Curated Selections</span>
+        <h2 class="fw-bold mb-0">Shop by Category</h2>
+      </div>
+      <a href="{% url 'shop:category_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mt-2 mt-sm-0">
+        All Categories <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-3 g-md-4">
+      {% for cat in categories %}
+        <div class="col-6 col-md-4 col-lg-2">
+          <a href="{% url 'shop:product_list_by_category' cat.slug %}" class="category-card">
+            <div class="category-icon-box">
+              <i class="bi {% cycle 'bi-laptop' 'bi-smartwatch' 'bi-headphones' 'bi-phone' 'bi-backpack' 'bi-house-heart' %}"></i>
+            </div>
+            <h6 class="fw-bold mb-1 text-truncate">{{ cat.name }}</h6>
+            <span class="small text-muted">{{ cat.total_products }} item{{ cat.total_products|pluralize }}</span>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Featured Products Section -->
+{% if featured_products %}
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+      <div>
+        <span class="badge bg-primary-subtle text-primary fw-bold mb-1">Handpicked</span>
+        <h2 class="fw-bold mb-0">Featured Products</h2>
+      </div>
+      <a href="{% url 'shop:product_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mt-2 mt-sm-0">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for product in featured_products %}
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="product-card">
+            <div class="product-image-wrapper">
+              <a href="{{ product.get_absolute_url }}">
+                <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+              </a>
+              <div class="product-badge-overlay">
+                {% if product.stock_quantity == 0 %}
+                  <span class="badge-stock badge-out-stock"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                {% elif product.stock_quantity <= 5 %}
+                  <span class="badge-stock badge-low-stock"><i class="bi bi-hourglass-split"></i> Only {{ product.stock_quantity }} left</span>
+                {% else %}
+                  <span class="badge-stock badge-in-stock"><i class="bi bi-check-circle"></i> In Stock</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="product-card-body">
+              <div class="product-category-tag">{{ product.category.name }}</div>
+              <h5 class="product-title">
+                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+              </h5>
+              <p class="product-desc-short">{{ product.description }}</p>
+              
+              <div class="product-price-wrapper">
+                <div class="product-price">{{ CURRENCY_SYMBOL }}{{ product.price }}</div>
+              </div>
+
+              <div class="product-actions">
+                <a href="{{ product.get_absolute_url }}" class="btn btn-secondary-custom flex-grow-1 btn-sm py-2" title="View Details">
+                  <i class="bi bi-eye"></i> Details
+                </a>
+                {% if product.is_in_stock %}
+                  <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="ajax-add-to-cart flex-grow-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-primary-custom w-100 btn-sm py-2">
+                      <i class="bi bi-cart-plus"></i> Add
+                    </button>
+                  </form>
+                {% else %}
+                  <button class="btn btn-secondary flex-grow-1 btn-sm py-2" disabled>
+                    Unavailable
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Promotional Section Banner -->
+<section class="py-5">
+  <div class="container">
+    <div class="p-4 p-md-5 rounded-4 shadow-sm text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);">
+      <div class="row align-items-center position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+          <span class="badge bg-warning text-dark fw-bold mb-2 px-3 py-1">Zero Risk Shopping</span>
+          <h2 class="display-6 fw-bold mb-3 text-white">Order Online & Pay at Your Doorstep</h2>
+          <p class="fs-6 text-light mb-4" style="max-width: 620px;">
+            Enjoy total peace of mind with our Cash on Delivery guarantee. Inspect your package, verify your items, and pay cash or UPI directly to our delivery courier.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'shop:product_list' %}" class="btn btn-light fw-bold px-4 py-2 rounded-pill">
+              Start Shopping <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-center">
+          <i class="bi bi-shield-lock-fill display-1 text-warning opacity-75"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Best Sellers & New Arrivals Tabbed / Grid Section -->
+{% if best_sellers %}
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+      <div>
+        <span class="badge bg-warning-subtle text-dark fw-bold mb-1"><i class="bi bi-fire text-danger"></i> Popular Demand</span>
+        <h2 class="fw-bold mb-0">Best Selling Products</h2>
+      </div>
+      <a href="{% url 'shop:product_list' %}?sort=price_low" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mt-2 mt-sm-0">
+        Explore All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for product in best_sellers %}
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="product-card">
+            <div class="product-image-wrapper">
+              <a href="{{ product.get_absolute_url }}">
+                <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+              </a>
+              <div class="product-badge-overlay">
+                <span class="badge bg-danger px-2 py-1 small fw-bold">Best Seller</span>
+              </div>
+            </div>
+            <div class="product-card-body">
+              <div class="product-category-tag">{{ product.category.name }}</div>
+              <h5 class="product-title">
+                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+              </h5>
+              <p class="product-desc-short">{{ product.description }}</p>
+              
+              <div class="product-price-wrapper">
+                <div class="product-price">{{ CURRENCY_SYMBOL }}{{ product.price }}</div>
+              </div>
+
+              <div class="product-actions">
+                <a href="{{ product.get_absolute_url }}" class="btn btn-secondary-custom flex-grow-1 btn-sm py-2">
+                  <i class="bi bi-eye"></i> Details
+                </a>
+                {% if product.is_in_stock %}
+                  <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="ajax-add-to-cart flex-grow-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-primary-custom w-100 btn-sm py-2">
+                      <i class="bi bi-cart-plus"></i> Add
+                    </button>
+                  </form>
+                {% else %}
+                  <button class="btn btn-secondary flex-grow-1 btn-sm py-2" disabled>
+                    Unavailable
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Newsletter Section with Working Backend Functionality -->
+<section class="py-5">
+  <div class="container">
+    <div class="newsletter-box text-center text-md-start">
+      <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-lg-6">
+          <span class="badge bg-primary px-3 py-1 rounded-pill mb-2">Stay Connected</span>
+          <h2 class="fw-bold text-white mb-2">Subscribe to NovaMart Insider</h2>
+          <p class="text-secondary-subtle mb-0" style="color: #cbd5e1;">
+            Get early access to flash deals, secret coupon codes, and new arrivals directly in your inbox. No spam ever.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <form id="newsletterForm" action="{% url 'shop:newsletter_subscribe' %}" method="POST" class="d-flex flex-column flex-sm-row gap-2">
+            {% csrf_token %}
+            <input type="email" name="email" class="form-control form-control-lg rounded-pill px-4" placeholder="Enter your email address" required aria-label="Email address">
+            <button type="submit" class="btn btn-primary-custom btn-pill px-4 py-2 text-nowrap">
+              <i class="bi bi-send-fill me-1"></i> Subscribe
+            </button>
+          </form>
+          <div class="small text-secondary-subtle mt-2" style="font-size: 0.8rem; color: #94a3b8;">
+            By subscribing, you agree to our Terms and Privacy Policy. Unsubscribe anytime.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

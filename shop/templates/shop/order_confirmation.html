@@ -1,0 +1,118 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Order Confirmed #{{ order.order_number }} | NovaMart{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <div class="max-w-2xl mx-auto" style="max-width: 720px;">
+    <!-- Confirmation Banner Card -->
+    <div class="card border-0 shadow-sm rounded-4 text-center p-4 p-md-5 bg-white mb-4">
+      <div class="mb-3">
+        <span class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+          <i class="bi bi-check2-circle display-4"></i>
+        </span>
+      </div>
+
+      <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill mb-2">Order Successfully Placed</span>
+      <h1 class="h2 fw-bold mb-2">Thank You For Your Order!</h1>
+      <p class="text-muted fs-6 mb-4">
+        We have received your order and our fulfillment team has started preparing your package for express dispatch.
+      </p>
+
+      <!-- Order ID Box -->
+      <div class="p-3 rounded-3 bg-light border mb-4 text-start">
+        <div class="row g-2 align-items-center">
+          <div class="col-sm-6">
+            <span class="small text-muted d-block">Order Reference Number</span>
+            <span class="font-monospace fw-bold fs-5 text-primary">{{ order.order_number }}</span>
+          </div>
+          <div class="col-sm-6 text-sm-end">
+            <span class="small text-muted d-block">Payment Method</span>
+            <span class="fw-bold text-dark"><i class="bi bi-cash-stack text-success me-1"></i> Cash on Delivery (COD)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Tracking Timeline Preview -->
+      <div class="tracking-stepper my-4">
+        <div class="tracking-line">
+          <div class="tracking-line-progress" style="width: 25%;"></div>
+        </div>
+        <div class="step-node completed">
+          <div class="step-icon"><i class="bi bi-check-lg"></i></div>
+          <div class="step-label">Order Placed</div>
+        </div>
+        <div class="step-node active">
+          <div class="step-icon"><i class="bi bi-hourglass-split"></i></div>
+          <div class="step-label">Confirmed</div>
+        </div>
+        <div class="step-node">
+          <div class="step-icon"><i class="bi bi-box-seam"></i></div>
+          <div class="step-label">Processing</div>
+        </div>
+        <div class="step-node">
+          <div class="step-icon"><i class="bi bi-truck"></i></div>
+          <div class="step-label">Out for Delivery</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex flex-wrap justify-content-center gap-3 mt-3">
+        <a href="{% url 'shop:order_detail' order.order_number %}" class="btn btn-primary-custom rounded-pill px-4 py-2">
+          <i class="bi bi-receipt me-1"></i> View Order Details
+        </a>
+        <a href="{% url 'shop:order_list' %}" class="btn btn-secondary-custom rounded-pill px-4 py-2">
+          <i class="bi bi-list-check me-1"></i> My Orders History
+        </a>
+        <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+          Continue Shopping
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Summary of Placed Items -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+      <h5 class="fw-bold mb-3 pb-2 border-bottom">Items in this Order</h5>
+      <div class="d-flex flex-column gap-3">
+        {% for item in items %}
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+              {% if item.product and item.product.image %}
+                <img src="{{ item.product.get_image_url }}" alt="{{ item.product_name }}" class="rounded-2" style="width: 48px; height: 48px; object-fit: cover;">
+              {% else %}
+                <div class="rounded-2 bg-light d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                  <i class="bi bi-box text-secondary"></i>
+                </div>
+              {% endif %}
+              <div>
+                <h6 class="mb-0 fw-bold small">{{ item.product_name }}</h6>
+                <span class="text-muted small">Quantity: {{ item.quantity }} × {{ CURRENCY_SYMBOL }}{{ item.unit_price }}</span>
+              </div>
+            </div>
+            <div class="fw-bold text-dark">
+              {{ CURRENCY_SYMBOL }}{{ item.subtotal }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
+        <span class="fw-bold">Total Payable on Delivery:</span>
+        <span class="fs-5 fw-bold text-primary">{{ CURRENCY_SYMBOL }}{{ order.total_amount }}</span>
+      </div>
+    </div>
+
+    <!-- Delivery Address Info -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mt-4">
+      <h5 class="fw-bold mb-2">Delivery Details</h5>
+      <p class="mb-1 text-dark fw-semibold">{{ order.full_name }}</p>
+      <p class="mb-1 text-muted small">{{ order.delivery_address }}, {{ order.city }}, {{ order.state }} - {{ order.postal_code }}</p>
+      <p class="mb-0 text-muted small">Phone: {{ order.phone }} • Email: {{ order.email }}</p>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

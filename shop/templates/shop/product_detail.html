@@ -1,0 +1,185 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} | NovaMart{% endblock %}
+{% block meta_description %}{{ product.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Shop</a></li>
+      <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+      <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width: 280px;">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Product Main Section -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden p-3 p-md-5 mb-5 bg-white">
+    <div class="row g-4 g-lg-5 align-items-center">
+      <!-- Product Image Column -->
+      <div class="col-lg-6">
+        <div class="position-relative rounded-4 overflow-hidden border p-2 bg-light text-center">
+          <img src="{{ product.get_image_url }}" alt="{{ product.name }}" class="img-fluid rounded-3" style="max-height: 480px; width: 100%; object-fit: contain;">
+          {% if product.stock_quantity == 0 %}
+            <div class="position-absolute top-0 start-0 m-3">
+              <span class="badge-stock badge-out-stock fs-6 px-3 py-2"><i class="bi bi-x-circle"></i> Out of Stock</span>
+            </div>
+          {% elif product.stock_quantity <= 5 %}
+            <div class="position-absolute top-0 start-0 m-3">
+              <span class="badge-stock badge-low-stock fs-6 px-3 py-2"><i class="bi bi-hourglass-split"></i> Only {{ product.stock_quantity }} Left</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Product Details Column -->
+      <div class="col-lg-6">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <a href="{{ product.category.get_absolute_url }}" class="badge bg-primary-subtle text-primary text-decoration-none px-3 py-1 rounded-pill fw-bold">
+            {{ product.category.name }}
+          </a>
+          <span class="small text-muted">• SKU #NVM-{{ product.id|stringformat:"05d" }}</span>
+        </div>
+
+        <h1 class="display-6 fw-bold mb-3">{{ product.name }}</h1>
+
+        <!-- Price Display -->
+        <div class="d-flex align-items-baseline gap-3 mb-4 pb-3 border-bottom">
+          <div class="display-6 fw-bold text-dark">{{ CURRENCY_SYMBOL }}{{ product.price }}</div>
+          <span class="text-muted small">Inclusive of all taxes</span>
+        </div>
+
+        <!-- Availability Status -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-uppercase small text-secondary d-block">Availability</label>
+          {% if product.stock_quantity > 5 %}
+            <div class="d-flex align-items-center gap-2 text-success fw-semibold">
+              <i class="bi bi-check-circle-fill fs-5"></i> In Stock ({{ product.stock_quantity }} units ready to dispatch)
+            </div>
+          {% elif product.stock_quantity > 0 %}
+            <div class="d-flex align-items-center gap-2 text-warning fw-semibold">
+              <i class="bi bi-exclamation-triangle-fill fs-5"></i> Low Stock — Order soon! Only {{ product.stock_quantity }} units left
+            </div>
+          {% else %}
+            <div class="d-flex align-items-center gap-2 text-danger fw-semibold">
+              <i class="bi bi-x-circle-fill fs-5"></i> Currently Out of Stock. Check back soon.
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Product Description -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-uppercase small text-secondary">Description</label>
+          <div class="text-secondary leading-relaxed" style="white-space: pre-line;">
+            {{ product.description }}
+          </div>
+        </div>
+
+        <!-- Add to Cart Form -->
+        {% if product.is_in_stock %}
+          <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="ajax-add-to-cart mb-4">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+              <div class="col-sm-5 col-6">
+                <label for="quantityInput" class="form-label fw-bold small text-uppercase text-secondary">Quantity</label>
+                <div class="qty-stepper w-100" data-product-id="{{ product.id }}">
+                  <button type="button" class="btn-qty-minus" aria-label="Decrease quantity">−</button>
+                  <input type="number" id="quantityInput" name="quantity" class="qty-input flex-grow-1" value="1" min="1" max="{{ max_order_qty }}" required>
+                  <button type="button" class="btn-qty-plus" aria-label="Increase quantity">+</button>
+                </div>
+              </div>
+              <div class="col-sm-7 col-6">
+                <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6">
+                  <i class="bi bi-cart-plus fs-5"></i> Add to Cart
+                </button>
+              </div>
+            </div>
+          </form>
+        {% else %}
+          <div class="alert alert-secondary d-flex align-items-center gap-2 rounded-3 mb-4" role="alert">
+            <i class="bi bi-bell fs-5"></i>
+            <div>This product is temporarily unavailable for purchase.</div>
+          </div>
+        {% endif %}
+
+        <!-- Trust Badges -->
+        <div class="row g-2 pt-3 border-top small text-secondary">
+          <div class="col-6 d-flex align-items-center gap-2">
+            <i class="bi bi-truck text-primary fs-5"></i>
+            <span>Fast Express Dispatch</span>
+          </div>
+          <div class="col-6 d-flex align-items-center gap-2">
+            <i class="bi bi-cash-stack text-success fs-5"></i>
+            <span>Cash on Delivery</span>
+          </div>
+          <div class="col-6 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-warning fs-5"></i>
+            <span>100% Genuine Quality</span>
+          </div>
+          <div class="col-6 d-flex align-items-center gap-2">
+            <i class="bi bi-arrow-repeat text-info fs-5"></i>
+            <span>7-Day Hassle-Free Return</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+    <div class="mt-5">
+      <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+          <span class="badge bg-secondary-subtle text-secondary fw-bold mb-1">Explore More</span>
+          <h3 class="fw-bold mb-0">Related Products in {{ product.category.name }}</h3>
+        </div>
+        <a href="{{ product.category.get_absolute_url }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+          See All Category <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
+      <div class="row g-4">
+        {% for rel_prod in related_products %}
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="product-card">
+              <div class="product-image-wrapper">
+                <a href="{{ rel_prod.get_absolute_url }}">
+                  <img src="{{ rel_prod.get_image_url }}" alt="{{ rel_prod.name }}" loading="lazy">
+                </a>
+              </div>
+              <div class="product-card-body">
+                <h5 class="product-title">
+                  <a href="{{ rel_prod.get_absolute_url }}">{{ rel_prod.name }}</a>
+                </h5>
+                <div class="product-price-wrapper">
+                  <div class="product-price">{{ CURRENCY_SYMBOL }}{{ rel_prod.price }}</div>
+                </div>
+                <div class="product-actions">
+                  <a href="{{ rel_prod.get_absolute_url }}" class="btn btn-secondary-custom flex-grow-1 btn-sm py-2">
+                    Details
+                  </a>
+                  {% if rel_prod.is_in_stock %}
+                    <form action="{% url 'shop:cart_add' rel_prod.id %}" method="POST" class="ajax-add-to-cart flex-grow-1">
+                      {% csrf_token %}
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" class="btn btn-primary-custom w-100 btn-sm py-2">
+                        <i class="bi bi-cart-plus"></i> Add
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

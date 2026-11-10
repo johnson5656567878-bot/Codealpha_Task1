@@ -1,0 +1,243 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if category %}{{ category.name }} Products | NovaMart{% elif query %}Search: "{{ query }}" | NovaMart{% else %}All Products Catalogue | NovaMart{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <!-- Breadcrumbs & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Shop</a></li>
+      {% if category %}
+        <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+      {% elif query %}
+        <li class="breadcrumb-item active" aria-current="page">Search: "{{ query }}"</li>
+      {% else %}
+        <li class="breadcrumb-item active" aria-current="page">All Products</li>
+      {% endif %}
+    </ol>
+  </nav>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <h1 class="h2 fw-bold mb-1">
+        {% if category %}
+          {{ category.name }}
+        {% elif query %}
+          Search Results for "{{ query }}"
+        {% else %}
+          Explore Products
+        {% endif %}
+      </h1>
+      <p class="text-muted small mb-0">Showing {{ products.paginator.count }} item{{ products.paginator.count|pluralize }} found in database</p>
+    </div>
+
+    <!-- Sorting Dropdown -->
+    <div class="d-flex align-items-center gap-2">
+      <label for="sortSelect" class="small fw-bold text-nowrap text-secondary mb-0">Sort By:</label>
+      <form method="GET" id="sortForm" class="d-inline-block">
+        {% if category %}<input type="hidden" name="category" value="{{ category.slug }}">{% endif %}
+        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+        {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+        {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+        {% if in_stock_only %}<input type="hidden" name="in_stock" value="1">{% endif %}
+        
+        <select name="sort" id="sortSelect" class="form-select form-select-sm rounded-pill px-3" onchange="document.getElementById('sortForm').submit();">
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+          <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+          <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Product Name (A-Z)</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Filter Sidebar Column -->
+    <div class="col-lg-3">
+      <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px; z-index: 10;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-funnel me-1 text-primary"></i> Filters</h5>
+          {% if category or query or min_price or max_price or in_stock_only %}
+            <a href="{% url 'shop:product_list' %}" class="small text-danger fw-semibold text-decoration-none">Reset All</a>
+          {% endif %}
+        </div>
+
+        <form method="GET" action="{% url 'shop:product_list' %}" id="filterForm">
+          {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+          {% if sort_by %}<input type="hidden" name="sort" value="{{ sort_by }}">{% endif %}
+
+          <!-- Categories Filter -->
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase text-secondary">Category</label>
+            <div class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="category" id="cat_all" value="" {% if not category %}checked{% endif %} onchange="this.form.submit()">
+                <label class="form-check-label small" for="cat_all">All Categories</label>
+              </div>
+              {% for cat in categories %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="category" id="cat_{{ cat.id }}" value="{{ cat.slug }}" {% if category and category.slug == cat.slug %}checked{% endif %} onchange="this.form.submit()">
+                  <label class="form-check-label small d-flex justify-content-between pe-2" for="cat_{{ cat.id }}">
+                    <span>{{ cat.name }}</span>
+                    <span class="text-muted">({{ cat.total_products }})</span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <hr class="my-3 text-secondary-subtle">
+
+          <!-- Price Range Filter -->
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase text-secondary">Price Range ({{ CURRENCY_SYMBOL }})</label>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <input type="number" name="min_price" class="form-control form-control-sm" placeholder="Min" value="{{ min_price|default:'' }}" min="0">
+              </div>
+              <div class="col-6">
+                <input type="number" name="max_price" class="form-control form-control-sm" placeholder="Max" value="{{ max_price|default:'' }}" min="0">
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-3 text-secondary-subtle">
+
+          <!-- Availability Filter -->
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase text-secondary">Availability</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="in_stock" id="in_stock" value="1" {% if in_stock_only %}checked{% endif %}>
+              <label class="form-check-label small" for="in_stock">
+                In Stock Only
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">
+            <i class="bi bi-check2"></i> Apply Filters
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Product Grid Column -->
+    <div class="col-lg-9">
+      {% if products %}
+        <div class="row g-4">
+          {% for product in products %}
+            <div class="col-12 col-sm-6 col-md-4">
+              <div class="product-card">
+                <div class="product-image-wrapper">
+                  <a href="{{ product.get_absolute_url }}">
+                    <img src="{{ product.get_image_url }}" alt="{{ product.name }}" loading="lazy">
+                  </a>
+                  <div class="product-badge-overlay">
+                    {% if product.stock_quantity == 0 %}
+                      <span class="badge-stock badge-out-stock"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                    {% elif product.stock_quantity <= 5 %}
+                      <span class="badge-stock badge-low-stock"><i class="bi bi-hourglass-split"></i> {{ product.stock_quantity }} left</span>
+                    {% else %}
+                      <span class="badge-stock badge-in-stock"><i class="bi bi-check-circle"></i> In Stock</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="product-card-body">
+                  <div class="product-category-tag">{{ product.category.name }}</div>
+                  <h5 class="product-title">
+                    <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                  </h5>
+                  <p class="product-desc-short">{{ product.description }}</p>
+
+                  <div class="product-price-wrapper">
+                    <div class="product-price">{{ CURRENCY_SYMBOL }}{{ product.price }}</div>
+                  </div>
+
+                  <div class="product-actions">
+                    <a href="{{ product.get_absolute_url }}" class="btn btn-secondary-custom flex-grow-1 btn-sm py-2">
+                      <i class="bi bi-eye"></i> Details
+                    </a>
+                    {% if product.is_in_stock %}
+                      <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="ajax-add-to-cart flex-grow-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-primary-custom w-100 btn-sm py-2">
+                          <i class="bi bi-cart-plus"></i> Add
+                        </button>
+                      </form>
+                    {% else %}
+                      <button class="btn btn-secondary flex-grow-1 btn-sm py-2" disabled>
+                        Unavailable
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if products.has_other_pages %}
+          <nav aria-label="Product navigation" class="mt-5">
+            <ul class="pagination justify-content-center">
+              {% if products.has_previous %}
+                <li class="page-item">
+                  <a class="page-link shadow-none" href="?page={{ products.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i> Previous
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+              {% endif %}
+
+              {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                  <li class="page-item active"><span class="page-link bg-primary border-primary">{{ num }}</span></li>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link shadow-none" href="?page={{ num }}{% if query_string %}&{{ query_string }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+
+              {% if products.has_next %}
+                <li class="page-item">
+                  <a class="page-link shadow-none" href="?page={{ products.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                    Next <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+
+      {% else %}
+        <!-- Empty Catalogue State -->
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+          <div class="mb-3">
+            <i class="bi bi-search text-muted display-3"></i>
+          </div>
+          <h4 class="fw-bold">No Products Found</h4>
+          <p class="text-muted mx-auto" style="max-width: 480px;">
+            We couldn't find any products matching your search or filter criteria. Try adjusting your price range or clearing filters.
+          </p>
+          <div class="mt-3">
+            <a href="{% url 'shop:product_list' %}" class="btn btn-primary-custom px-4">
+              Clear All Filters
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Shopping Cart | NovaMart{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+    </ol>
+  </nav>
+
+  <h1 class="h2 fw-bold mb-4">Your Shopping Cart</h1>
+
+  {% if cart %}
+    <div class="row g-4 g-lg-5">
+      <!-- Cart Items Table Column -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+          <div class="d-flex justify-content-between align-items-center p-3 p-md-4 border-bottom bg-light-subtle">
+            <h5 class="fw-bold mb-0">Cart Items ({{ cart|length }})</h5>
+            <form action="{% url 'shop:cart_clear' %}" method="POST" onsubmit="return confirm('Are you sure you want to clear your shopping cart?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                <i class="bi bi-trash3 me-1"></i> Clear Cart
+              </button>
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table cart-table align-middle mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th scope="col" style="min-width: 220px;">Product</th>
+                  <th scope="col" class="text-center">Unit Price</th>
+                  <th scope="col" class="text-center" style="min-width: 140px;">Quantity</th>
+                  <th scope="col" class="text-end">Subtotal</th>
+                  <th scope="col" class="text-center">Remove</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in cart %}
+                  <tr id="cart-row-{{ item.product.id }}">
+                    <!-- Product Details -->
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <img src="{{ item.product.get_image_url }}" alt="{{ item.product.name }}" class="cart-item-img">
+                        <div>
+                          <a href="{{ item.product.get_absolute_url }}" class="fw-bold text-dark text-decoration-none d-block mb-1">
+                            {{ item.product.name }}
+                          </a>
+                          <span class="badge bg-light text-secondary border small">{{ item.product.category.name }}</span>
+                          {% if item.product.stock_quantity <= 5 %}
+                            <div class="small text-warning fw-semibold mt-1">Only {{ item.product.stock_quantity }} in stock</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Unit Price -->
+                    <td class="text-center fw-semibold text-secondary">
+                      {{ CURRENCY_SYMBOL }}{{ item.unit_price }}
+                    </td>
+
+                    <!-- Quantity Stepper -->
+                    <td class="text-center">
+                      <div class="qty-stepper mx-auto" data-product-id="{{ item.product.id }}" data-is-cart="true">
+                        <button type="button" class="btn-qty-minus" aria-label="Decrease quantity">−</button>
+                        <input type="number" class="qty-input" value="{{ item.quantity }}" min="1" max="{{ item.max_stock }}">
+                        <button type="button" class="btn-qty-plus" aria-label="Increase quantity">+</button>
+                      </div>
+                    </td>
+
+                    <!-- Subtotal -->
+                    <td class="text-end fw-bold text-dark" id="line-subtotal-{{ item.product.id }}">
+                      {{ CURRENCY_SYMBOL }}{{ item.subtotal }}
+                    </td>
+
+                    <!-- Delete Button -->
+                    <td class="text-center">
+                      <form action="{% url 'shop:cart_remove' item.product.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Remove item">
+                          <i class="bi bi-trash3-fill fs-5"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <a href="{% url 'shop:product_list' %}" class="btn btn-secondary-custom rounded-pill px-4">
+            <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+          </a>
+        </div>
+      </div>
+
+      <!-- Order Summary Column -->
+      <div class="col-lg-4">
+        <div class="summary-card sticky-top" style="top: 90px;">
+          <h4 class="fw-bold mb-3">Order Summary</h4>
+
+          <!-- Free Shipping Tracker -->
+          <div class="p-3 rounded-3 bg-light mb-3">
+            {% if subtotal >= 999 %}
+              <div class="d-flex align-items-center gap-2 text-success small fw-bold">
+                <i class="bi bi-patch-check-fill fs-5"></i> You've unlocked FREE Delivery!
+              </div>
+            {% else %}
+              <div class="small text-secondary mb-1">
+                Add <strong>{{ CURRENCY_SYMBOL }}{{ 999|floatformat:2 }}</strong> or more to get <strong>FREE Express Shipping</strong>!
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Breakdown -->
+          <div class="summary-row">
+            <span>Items Subtotal</span>
+            <span class="fw-bold" id="summary-subtotal">{{ CURRENCY_SYMBOL }}{{ subtotal }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Estimated Shipping</span>
+            <span class="fw-bold" id="summary-shipping">
+              {% if shipping == 0 %}
+                <span class="text-success">FREE</span>
+              {% else %}
+                {{ CURRENCY_SYMBOL }}{{ shipping }}
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="summary-row">
+            <span>Estimated Taxes</span>
+            <span class="text-muted small">Included</span>
+          </div>
+
+          <!-- Grand Total -->
+          <div class="summary-row summary-total">
+            <span>Total Amount</span>
+            <span class="text-primary" id="summary-total">{{ CURRENCY_SYMBOL }}{{ total }}</span>
+          </div>
+
+          <!-- Checkout CTA -->
+          <div class="mt-4">
+            <a href="{% url 'shop:checkout' %}" class="btn btn-primary-custom w-100 py-3 fs-6 rounded-pill">
+              Proceed to Checkout <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+
+          <div class="text-center mt-3">
+            <span class="small text-muted"><i class="bi bi-shield-check text-success me-1"></i> Safe & Secure Cash on Delivery</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <!-- Empty Cart State -->
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4 bg-white">
+      <div class="mb-3">
+        <i class="bi bi-cart-x display-1 text-muted"></i>
+      </div>
+      <h3 class="fw-bold">Your Shopping Cart is Empty</h3>
+      <p class="text-muted mx-auto" style="max-width: 480px;">
+        Looks like you haven't added anything to your cart yet. Explore our curated collections to find what you love!
+      </p>
+      <div class="mt-3">
+        <a href="{% url 'shop:product_list' %}" class="btn btn-primary-custom btn-pill px-5 py-3 fs-6">
+          <i class="bi bi-bag-fill me-1"></i> Start Shopping
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

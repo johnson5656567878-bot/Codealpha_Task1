@@ -1,0 +1,183 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}My Account Dashboard | NovaMart{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">My Account</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <h1 class="h2 fw-bold mb-1">My Account</h1>
+      <p class="text-muted small mb-0">Manage your profile information and view your activity</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'shop:order_list' %}" class="btn btn-secondary-custom rounded-pill btn-sm px-3">
+        <i class="bi bi-box-seam me-1"></i> Order History
+      </a>
+      <a href="{% url 'shop:logout' %}" class="btn btn-outline-danger rounded-pill btn-sm px-3">
+        <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Account Stats / Summary Column -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 text-center">
+        <div class="brand-icon mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2rem;">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <h4 class="fw-bold mb-1">{{ user.first_name }} {{ user.last_name }}</h4>
+        <div class="text-muted small mb-2">@{{ user.username }}</div>
+        <div class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill mb-3">
+          Verified Customer
+        </div>
+
+        <div class="row g-2 pt-3 border-top text-center">
+          <div class="col-6 border-end">
+            <span class="small text-muted d-block">Total Orders</span>
+            <span class="fs-4 fw-bold text-dark">{{ total_orders_count }}</span>
+          </div>
+          <div class="col-6">
+            <span class="small text-muted d-block">Member Since</span>
+            <span class="fw-semibold text-dark small d-block mt-1">{{ user.date_joined|date:"M Y" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <h6 class="fw-bold text-uppercase small text-secondary mb-3">Quick Actions</h6>
+        <div class="list-group list-group-flush small">
+          <a href="{% url 'shop:order_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-0 border-bottom">
+            <span><i class="bi bi-box-seam me-2 text-primary"></i> View All Orders</span>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="{% url 'shop:cart_detail' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-0 border-bottom">
+            <span><i class="bi bi-cart3 me-2 text-primary"></i> Shopping Cart</span>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="{% url 'shop:product_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-0">
+            <span><i class="bi bi-grid me-2 text-primary"></i> Continue Shopping</span>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Form & Recent Orders Column -->
+    <div class="col-lg-8">
+      <!-- Edit Profile -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <h5 class="fw-bold mb-3 pb-2 border-bottom"><i class="bi bi-pencil-square me-2 text-primary"></i> Edit Profile Information</h5>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger rounded-3 py-2 small mb-3">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'shop:account_profile' %}">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.first_name.id_for_label }}" class="form-label small fw-bold">First Name</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="{{ form.last_name.id_for_label }}" class="form-label small fw-bold">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label for="{{ form.email.id_for_label }}" class="form-label small fw-bold">Email Address</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary-custom rounded-pill px-4">
+              <i class="bi bi-check2-circle me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Recent Orders Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Orders</h5>
+          <a href="{% url 'shop:order_list' %}" class="small text-primary fw-semibold text-decoration-none">View All</a>
+        </div>
+
+        {% if recent_orders %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0 small">
+              <thead class="bg-light">
+                <tr>
+                  <th>Order #</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in recent_orders %}
+                  <tr>
+                    <td class="font-monospace fw-bold text-primary">{{ order.order_number }}</td>
+                    <td class="text-muted">{{ order.created_at|date:"M d, Y" }}</td>
+                    <td class="fw-bold text-dark">{{ CURRENCY_SYMBOL }}{{ order.total_amount }}</td>
+                    <td>
+                      {% if order.order_status == 'Pending' %}
+                        <span class="badge-status badge-status-pending py-1 px-2" style="font-size: 0.7rem;">Pending</span>
+                      {% elif order.order_status == 'Confirmed' %}
+                        <span class="badge-status badge-status-confirmed py-1 px-2" style="font-size: 0.7rem;">Confirmed</span>
+                      {% elif order.order_status == 'Processing' %}
+                        <span class="badge-status badge-status-processing py-1 px-2" style="font-size: 0.7rem;">Processing</span>
+                      {% elif order.order_status == 'Shipped' %}
+                        <span class="badge-status badge-status-shipped py-1 px-2" style="font-size: 0.7rem;">Shipped</span>
+                      {% elif order.order_status == 'Delivered' %}
+                        <span class="badge-status badge-status-delivered py-1 px-2" style="font-size: 0.7rem;">Delivered</span>
+                      {% elif order.order_status == 'Cancelled' %}
+                        <span class="badge-status badge-status-cancelled py-1 px-2" style="font-size: 0.7rem;">Cancelled</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      <a href="{% url 'shop:order_detail' order.order_number %}" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0">
+                        Details
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0 py-2">No recent orders found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}All Categories | NovaMart{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'shop:home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Categories</li>
+    </ol>
+  </nav>
+
+  <div class="text-center max-w-xl mx-auto mb-5">
+    <span class="badge bg-primary-subtle text-primary fw-bold mb-2">Browse By Department</span>
+    <h1 class="display-5 fw-bold mb-3">All Product Categories</h1>
+    <p class="text-muted fs-6 mx-auto" style="max-width: 550px;">
+      Discover our curated collections across cutting-edge electronics, fashion, smart wearables, and home living.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    {% for category in categories %}
+      <div class="col-12 col-sm-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden p-4 text-center transition-all">
+          {% if category.image %}
+            <div class="mb-3 overflow-hidden rounded-3" style="height: 140px;">
+              <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-100 h-100 object-fit-cover">
+            </div>
+          {% else %}
+            <div class="category-icon-box mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2rem;">
+              <i class="bi {% cycle 'bi-laptop' 'bi-phone' 'bi-headphones' 'bi-smartwatch' 'bi-backpack' 'bi-house-heart' %}"></i>
+            </div>
+          {% endif %}
+          <h4 class="fw-bold mb-2">{{ category.name }}</h4>
+          <p class="text-muted small mb-3 flex-grow-1">
+            {{ category.description|default:"Explore top-rated products in this department." }}
+          </p>
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+            <span class="badge bg-secondary-subtle text-dark px-3 py-2 rounded-pill">
+              {{ category.total_products }} Product{{ category.total_products|pluralize }}
+            </span>
+            <a href="{% url 'shop:product_list_by_category' category.slug %}" class="btn btn-sm btn-primary-custom rounded-pill px-3">
+              Browse <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-tags text-muted display-3 mb-3"></i>
+        <h4>No Categories Found</h4>
+        <p class="text-muted">No categories have been created yet. Add categories in Django Admin.</p>
+        <a href="{% url 'admin:index' %}" class="btn btn-primary-custom" target="_blank">Open Admin</a>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
